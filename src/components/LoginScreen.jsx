@@ -22,7 +22,7 @@ const LoginScreen = ({ onLogin }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://planner-gwt6msj20-sobreiras-projects.vercel.app/api/auth/login', {
+      const response = await fetch('/.netlify/functions/server/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ const LoginScreen = ({ onLogin }) => {
     
     try {
       // Redirecionar para o backend para iniciar o fluxo OAuth
-      window.location.href = 'https://planner-gwt6msj20-sobreiras-projects.vercel.app/api/auth/google';
+      window.location.href = '/.netlify/functions/server/auth/google';
     } catch (error) {
       console.error('Erro no login Google:', error);
       alert('Erro ao conectar com Google. Tente novamente.');

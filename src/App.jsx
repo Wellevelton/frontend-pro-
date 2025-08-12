@@ -410,6 +410,7 @@ const App = () => {
         setActiveSubTab={setActiveSubTab}
         setShowProfile={setShowProfile}
         setShowSettings={setShowSettings}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1 p-6 overflow-auto">

@@ -1,9 +1,8 @@
 // API Service for Planner Pro
 // Centralized API calls to backend
 
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://backend-p23jp0zjv-sobreiras-projects.vercel.app/api'  // URL do backend no Vercel
-  : 'http://localhost:3000/api';
+// BACKEND URL - NETLIFY FUNCTIONS
+const API_BASE_URL = '/.netlify/functions/server';
 
 // Token management
 const getToken = () => {
@@ -24,6 +23,7 @@ const authenticatedRequest = async (url, options = {}) => {
   
   const config = {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -36,14 +36,11 @@ const authenticatedRequest = async (url, options = {}) => {
 
   const response = await fetch(`${API_BASE_URL}${url}`, config);
   
-  if (response.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-    return null;
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
-
-  return response;
+  
+  return response.json();
 };
 
 // API Objects
@@ -56,256 +53,465 @@ export const apiService = {
     login: async (credentials) => {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify(credentials),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro no login');
+      }
+
       return response.json();
     },
 
     register: async (userData) => {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify(userData),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro no registro');
+      }
+
       return response.json();
     },
 
     googleLogin: () => {
-      window.location.href = `${API_BASE_URL}/auth/google`;
+      alert('Google login não implementado ainda');
     },
   },
 
   // Projects API
   projects: {
     getAll: async () => {
-      const response = await authenticatedRequest('/projects');
-      return response ? response.json() : [];
+      return authenticatedRequest('/projects');
     },
 
     create: async (project) => {
-      const response = await authenticatedRequest('/projects', {
+      const response = await fetch(`${API_BASE_URL}/projects`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(project),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao criar projeto');
+      }
+
+      return response.json();
     },
 
     update: async (id, project) => {
-      const response = await authenticatedRequest(`/projects/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(project),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar projeto');
+      }
+
+      return response.json();
     },
 
     delete: async (id) => {
-      const response = await authenticatedRequest(`/projects/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
       });
-      return response ? response.ok : false;
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar projeto');
+      }
+
+      return true;
     },
   },
 
   // Goals API
   goals: {
     getAll: async () => {
-      const response = await authenticatedRequest('/goals');
-      return response ? response.json() : [];
+      return authenticatedRequest('/goals');
     },
 
     create: async (goal) => {
-      const response = await authenticatedRequest('/goals', {
+      const response = await fetch(`${API_BASE_URL}/goals`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(goal),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao criar meta');
+      }
+
+      return response.json();
     },
 
     update: async (id, goal) => {
-      const response = await authenticatedRequest(`/goals/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(goal),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar meta');
+      }
+
+      return response.json();
     },
 
     delete: async (id) => {
-      const response = await authenticatedRequest(`/goals/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/goals/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
       });
-      return response ? response.ok : false;
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar meta');
+      }
+
+      return true;
     },
   },
 
   // Finances API
   finances: {
     getAll: async () => {
-      const response = await authenticatedRequest('/finances');
-      return response ? response.json() : [];
+      return authenticatedRequest('/finances');
     },
 
     create: async (finance) => {
-      const response = await authenticatedRequest('/finances', {
+      const response = await fetch(`${API_BASE_URL}/finances`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(finance),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao criar financeiro');
+      }
+
+      return response.json();
     },
 
     update: async (id, finance) => {
-      const response = await authenticatedRequest(`/finances/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/finances/${id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(finance),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar financeiro');
+      }
+
+      return response.json();
     },
 
     delete: async (id) => {
-      const response = await authenticatedRequest(`/finances/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/finances/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
       });
-      return response ? response.ok : false;
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar financeiro');
+      }
+
+      return true;
     },
   },
 
   // Financial Planning API
   financialPlanning: {
     getAll: async () => {
-      const response = await authenticatedRequest('/financial-planning');
-      return response ? response.json() : [];
+      return authenticatedRequest('/financial-planning');
     },
 
     create: async (planning) => {
-      const response = await authenticatedRequest('/financial-planning', {
+      const response = await fetch(`${API_BASE_URL}/financial-planning`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(planning),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao criar planejamento financeiro');
+      }
+
+      return response.json();
     },
 
     update: async (id, planning) => {
-      const response = await authenticatedRequest(`/financial-planning/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/financial-planning/${id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(planning),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar planejamento financeiro');
+      }
+
+      return response.json();
     },
 
     delete: async (id) => {
-      const response = await authenticatedRequest(`/financial-planning/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/financial-planning/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
       });
-      return response ? response.ok : false;
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar planejamento financeiro');
+      }
+
+      return true;
     },
   },
 
   // Travels API
   travels: {
     getAll: async () => {
-      const response = await authenticatedRequest('/travels');
-      return response ? response.json() : [];
+      return authenticatedRequest('/travels');
     },
 
     create: async (travel) => {
-      const response = await authenticatedRequest('/travels', {
+      const response = await fetch(`${API_BASE_URL}/travels`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(travel),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao criar viagem');
+      }
+
+      return response.json();
     },
 
     update: async (id, travel) => {
-      const response = await authenticatedRequest(`/travels/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/travels/${id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(travel),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar viagem');
+      }
+
+      return response.json();
     },
 
     delete: async (id) => {
-      const response = await authenticatedRequest(`/travels/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/travels/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
       });
-      return response ? response.ok : false;
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar viagem');
+      }
+
+      return true;
     },
   },
 
   // Career API
   career: {
     getAll: async () => {
-      const response = await authenticatedRequest('/career');
-      return response ? response.json() : [];
+      return authenticatedRequest('/career');
     },
 
     create: async (careerItem) => {
-      const response = await authenticatedRequest('/career', {
+      const response = await fetch(`${API_BASE_URL}/career`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(careerItem),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao criar item de carreira');
+      }
+
+      return response.json();
     },
 
     update: async (id, careerItem) => {
-      const response = await authenticatedRequest(`/career/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/career/${id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(careerItem),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar item de carreira');
+      }
+
+      return response.json();
     },
 
     delete: async (id) => {
-      const response = await authenticatedRequest(`/career/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/career/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
       });
-      return response ? response.ok : false;
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar item de carreira');
+      }
+
+      return true;
     },
   },
 
   // Calendar API
   calendar: {
     getAll: async () => {
-      const response = await authenticatedRequest('/calendar');
-      return response ? response.json() : [];
+      return authenticatedRequest('/calendar');
     },
 
     create: async (event) => {
-      const response = await authenticatedRequest('/calendar', {
+      const response = await fetch(`${API_BASE_URL}/calendar`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(event),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao criar evento');
+      }
+
+      return response.json();
     },
 
     update: async (id, event) => {
-      const response = await authenticatedRequest(`/calendar/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/calendar/${id}`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
         body: JSON.stringify(event),
       });
-      return response ? response.json() : null;
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar evento');
+      }
+
+      return response.json();
     },
 
     delete: async (id) => {
-      const response = await authenticatedRequest(`/calendar/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/calendar/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        credentials: 'include',
       });
-      return response ? response.ok : false;
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar evento');
+      }
+
+      return true;
     },
   },
 
   // User API
   user: {
     getProfile: async () => {
-      const response = await authenticatedRequest('/user/profile');
-      return response ? response.json() : null;
+      return { id: 1, email: 'teste@planner.com', name: 'Usuário Teste' };
     },
 
     updateProfile: async (profile) => {
-      const response = await authenticatedRequest('/user/profile', {
-        method: 'PUT',
-        body: JSON.stringify(profile),
-      });
-      return response ? response.json() : null;
+      return profile;
     },
   },
 };

@@ -7,33 +7,25 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "netlify/functions/server.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1",
-      "headers": {
-        "Content-Type": "application/javascript"
-      }
-    },
-    {
-      "src": "/(.*\\.js)",
-      "dest": "/$1",
-      "headers": {
-        "Content-Type": "application/javascript"
-      }
-    },
-    {
-      "src": "/(.*\\.css)",
-      "dest": "/$1",
-      "headers": {
-        "Content-Type": "text/css"
-      }
+      "src": "/api/(.*)",
+      "dest": "/netlify/functions/server.js"
     },
     {
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "netlify/functions/server.js": {
+      "maxDuration": 30
+    }
+  }
 }

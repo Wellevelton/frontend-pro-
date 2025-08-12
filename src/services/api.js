@@ -2,7 +2,7 @@
 // Centralized API calls to backend
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://backend-pro-sobreiras-projects.vercel.app/api'  // URL do backend no Vercel
+  ? 'https://backend-p23jp0zjv-sobreiras-projects.vercel.app/api'  // URL do backend no Vercel
   : 'http://localhost:3000/api';
 
 // Token management
